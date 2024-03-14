@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2024 Camptocamp SA
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="wizard_product_attribute_merge_form" model="ir.ui.view">
+        <field name="name">wizard.product.attribute.merge.form</field>
+        <field name="model">wizard.product.attribute.merge</field>
+        <field name="arch" type="xml">
+            <form string="Merge Product Attribute">
+                <group
+                    name="test"
+                >
+                    <field name="product_attribute_id" />
+                    <field name="into_product_attribute_id" />
+                </group>
+                <footer>
+                    <button
+                        name="action_merge"
+                        type="object"
+                        string="Validate"
+                        class="btn-primary"
+                    />
+                    <button special="cancel" string="Cancel" class="btn-default" />
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
