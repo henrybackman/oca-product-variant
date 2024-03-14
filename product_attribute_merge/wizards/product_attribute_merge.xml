@@ -13,6 +13,31 @@
                     <field name="product_attribute_id" />
                     <field name="into_product_attribute_id" />
                 </group>
+                <group>
+                  <!-- <field name="available_attribute_ids" invisible="1" /> -->
+                  <field name="attribute_values_merge_action_ids" nolabel="1">
+                    <tree
+                      editable="true"
+                      create="false"
+                      delete="0"
+                      open="0"
+                      >
+                    <field name="attribute_value_id" />
+                    <field
+                      name="attribute_value_action"
+                      string="action"
+                      />
+                    <field
+                      name="merge_into_attribute_value_id"
+                      invisible="1"
+                      />
+                    <field
+                      name="merge_into_attribute_value_id"
+                      attrs="{'readonly':[['attribute_value_action', '!=', 'merge' ]]}"
+                      />
+                  </tree>
+                </field>
+              </group>
                 <footer>
                     <button
                         name="action_merge"

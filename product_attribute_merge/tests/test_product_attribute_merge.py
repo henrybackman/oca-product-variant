@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl)
 
 from odoo.exceptions import UserError
-from odoo.tests.common import SavepointCase
+from odoo.tests.common import Form, SavepointCase
 
 
 class TestProductAttributeMerge(SavepointCase):
@@ -93,13 +93,18 @@ class TestProductAttributeMerge(SavepointCase):
         return self.assertTrue(all(iterable))
 
     def test_merge(self):
-        self.color_attribute = self.env.ref("product.product_attribute_2")
+        self.color_attribute = self.attribute
+        # __import__("pdb").set_trace()
+        self.colour_attribute = self.env.ref("product.product_attribute_2")
         wiz_model = self.env["wizard.product.attribute.merge"].with_context(
             active_model=self.env["product.attribute"],
             active_ids=self.color_attribute.ids,
         )
         wiz = wiz_model.create({"product_attribute_id": self.color_attribute.id})
-        wiz.into_product_attribute_id = self.colour_attribute.id
+        with Form(wiz_model) as form:
+            self.assertEqual(form.product_attribute_id, self.color_attribute)
+            form.into_product_attribute_id = self.colour_attribute
+
         wiz.action_merge()
 
 
