@@ -46,19 +46,70 @@ class WizardProductAttributeMerge(models.TransientModel):
             record.attribute_values_merge_action_ids = [(6, 0, actions.ids)]
 
     @api.model
+    def _get_action_for_value(self, value_to_merge, product_attribute):
+        if not value_to_merge.pav_attribute_line_ids:
+            return "delete"
+        # should pass a dict of id values
+        values = { value.name.casefold(): value.id for value in product_attribute.value_ids}
+        iid = values.get(value_to_merge.name.casefold())
+        if iid:
+            return "merge"
+        return "move"
+
+    @api.model
+    def _merge_attribute_value(self, value_to_merge, value_merge_into):
+        pass
+
+    @api.model
+    def _move_attribute_value(self, value, attribute):
+        for line in value.pav_attribute_line_ids:
+            for ptav in line.product_template_value_ids:
+                ptav.attribute_id = attribute
+            # __import__("pdb").set_trace()
+            # line.with_context(
+            #     update_product_template_attribute_values=False
+            # ).write({"value_ids": [(4, pav_replacement.id)]})
+            # FIXME this is not allowed :(
+            line.with_context(
+                update_product_template_attribute_values=False
+            ).write({"attribute_id":  attribute.id})
+
+
+        # ptav = self.env["product.template.attribute.value"].search[
+        #     (
+        #     )
+        # ]
+        # todo - modify product_template_attribute_value
+
+        value.attribute_id = attribute
+
+    @api.model
     def _get_actions_for_values(self, attribute_to_merge, attribute_merge_into):
-        res = self.env["product.attribute.merge.value.action"].create(
-            [
+        actions = self.env["product.attribute.merge.value.action"].browse()
+        if not attribute_merge_into:
+            return actions
+        for value in attribute_to_merge.value_ids:
+            action = self._get_action_for_value(value, attribute_merge_into)
+            actions |= self.env["product.attribute.merge.value.action"].create(
                 {
                     "attribute_value_id": value.id,
-                    "attribute_value_action": "delete",
-                    "merge_into_attribute_value_id": attribute_merge_into.id,
+                    "attribute_value_action": action,
+                    "merge_into_attribute_id": attribute_merge_into.id,
+                    "merge_into_attribute_value_id": False,
                 }
                 for value in attribute_to_merge.value_ids
-            ]
-        )
-        return res
+            )
+        return actions
 
     def action_merge(self):
         self.ensure_one()
+        for action in self.attribute_values_merge_action_ids:
+            if action.attribute_value_action == "merge":
+                self._merge_attribute_value(action.attribute_value_id, action.merge_into_attribute_value_id)
+            elif action.attribute_value_action == "move":
+                self._move_attribute_value(action.attribute_value_id, action.merge_into_attribute_id)
+                pass
+            else:
+                pass
+
         return

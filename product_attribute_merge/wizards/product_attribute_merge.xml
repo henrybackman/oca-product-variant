@@ -18,7 +18,7 @@
                   <field name="attribute_values_merge_action_ids" nolabel="1">
                     <tree
                       editable="true"
-                      create="false"
+                      create="0"
                       delete="0"
                       open="0"
                       >
@@ -35,6 +35,7 @@
                       name="merge_into_attribute_value_id"
                       attrs="{'readonly':[['attribute_value_action', '!=', 'merge' ]]}"
                       />
+                    <field name="available_attribute_value_ids" invisible="1" />
                   </tree>
                 </field>
               </group>

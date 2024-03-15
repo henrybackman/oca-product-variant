@@ -11,5 +11,5 @@
     "license": "AGPL-3",
     "installable": True,
     "depends": ["product"],
-    "data": ["views/product_attribute_value_views.xml", "wizards/product_attribute_merge.xml"],
+    "data": ["data/product_demo.xml", "views/product_attribute_value_views.xml", "wizards/product_attribute_merge.xml"],
 }

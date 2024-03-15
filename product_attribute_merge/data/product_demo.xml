@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+        <record id="attribute_colour" model="product.attribute">
+            <field name="name">Colour</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="attribute_value_white" model="product.attribute.value">
+            <field name="name">White</field>
+            <field name="attribute_id" ref="attribute_colour"/>
+            <field name="sequence">1</field>
+        </record>
+        <record id="attribute_value_black" model="product.attribute.value">
+            <field name="name">Black</field>
+            <field name="attribute_id" ref="attribute_colour"/>
+            <field name="sequence">2</field>
+        </record>
+        <record id="attribute_value_pink" model="product.attribute.value">
+            <field name="name">Pink</field>
+            <field name="attribute_id" ref="attribute_colour"/>
+            <field name="sequence">3</field>
+        </record>
+        <record id="attribute_value_orange" model="product.attribute.value">
+            <field name="name">Orange</field>
+            <field name="attribute_id" ref="attribute_colour"/>
+            <field name="sequence">4</field>
+        </record>
+  </data>
+</odoo>

@@ -13,6 +13,10 @@ class TestProductAttributeMerge(SavepointCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.env = cls.env(context=dict(cls.env.context, tracking_disable=True))
+
+        cls.wizard_model = cls.env["wizard.product.attribute.merge"]
+
+        # ----
         cls.setUpClassTemplate()
         cls.setUpClassAttribute()
         cls.setUpClassProduct()
@@ -92,20 +96,60 @@ class TestProductAttributeMerge(SavepointCase):
     def assertAll(self, iterable):
         return self.assertTrue(all(iterable))
 
+    #------------------------------------------
+
+    def _get_wizard(self, product_attribute):
+        context = {"active_model": "product.attribute", "active_ids": product_attribute.ids}
+        return Form(self.wizard_model.with_context(context)).save()
+
+
+    #------------------------------------------
+
+
     def test_merge(self):
         self.color_attribute = self.attribute
-        # __import__("pdb").set_trace()
+
         self.colour_attribute = self.env.ref("product.product_attribute_2")
         wiz_model = self.env["wizard.product.attribute.merge"].with_context(
             active_model=self.env["product.attribute"],
             active_ids=self.color_attribute.ids,
         )
-        wiz = wiz_model.create({"product_attribute_id": self.color_attribute.id})
+        # wiz = wiz_model.create({"product_attribute_id": self.color_attribute.id})
         with Form(wiz_model) as form:
             self.assertEqual(form.product_attribute_id, self.color_attribute)
             form.into_product_attribute_id = self.colour_attribute
 
-        wiz.action_merge()
+    def test_merge_one(self):
+        """ """
+        # Has White, Black
+        color= self.env.ref("product.product_attribute_2")
+        colour = self.env.ref("product_attribute_merge.attribute_colour")
+        wizard = self._get_wizard(color)
+        wizard.into_product_attribute_id = colour
+        wizard._onchange_merge_into_product_attribute_id()
+        # Fix me there is 4 actions I am not sure why ?
+        # actions = wizard.attribute_values_merge_action_ids.mapped("attribute_value_action")
+        wizard.action_merge()
+
+
+
+        
+        # Not sure how to call the action_merge method ?
+        # with Form(wizard) as form: 
+        #     form.into_product_attribute_id = colour
+
+
+    def test_move_value(self):
+        # Has White, Black
+        color= self.env.ref("product.product_attribute_2")
+        colour = self.env.ref("product_attribute_merge.attribute_colour")
+        # value_to_move = self.env.ref("product_attribute_merge.attribute_value_pink")
+        # white
+        value_to_move = self.env.ref("product.product_attribute_value_3")
+        wizard = self._get_wizard(colour)
+        wizard._move_attribute_value(value_to_move, colour)
+
+
 
 
     # def test_value_unlink(self):
