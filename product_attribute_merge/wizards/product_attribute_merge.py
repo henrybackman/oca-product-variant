@@ -62,24 +62,58 @@ class WizardProductAttributeMerge(models.TransientModel):
 
     @api.model
     def _move_attribute_value(self, value, attribute):
-        for line in value.pav_attribute_line_ids:
-            for ptav in line.product_template_value_ids:
-                ptav.attribute_id = attribute
-            # __import__("pdb").set_trace()
-            # line.with_context(
-            #     update_product_template_attribute_values=False
-            # ).write({"value_ids": [(4, pav_replacement.id)]})
-            # FIXME this is not allowed :(
+        Ptal = self.env["product.template.attribute.line"]
+        Ptav = self.env["product.template.attribute.value"]
+
+        ptal_to_move = value.pav_attribute_line_ids
+        # Remove the value from existing ptal (need clean up after)
+        for line in ptal_to_move:
+            # TODO handle archived line as well !
             line.with_context(
                 update_product_template_attribute_values=False
-            ).write({"attribute_id":  attribute.id})
+            ).write({"value_ids": [(3, value.id)]})
+        # Move the value to the other  attribute
+        value.attribute_id = attribute
 
+        # Connect to the ptal from the new attribte
+        for line in ptal_to_move:
+            # Search for an existing line for attribute, if none create one
+            template = line.product_tmpl_id
+            ptav2move = line.product_template_value_ids.filtered(
+                lambda ptav: ptav.product_attribute_value_id == value
+            )
+            tpl_attr_line = template.attribute_line_ids.filtered(
+                lambda l: l.attribute_id == attribute
+            )
 
-        # ptav = self.env["product.template.attribute.value"].search[
-        #     (
-        #     )
-        # ]
-        # todo - modify product_template_attribute_value
+            if not tpl_attr_line:
+                tpl_attr_line = Ptal.with_context(
+                    # Does not work at creation !
+                    update_product_template_attribute_values=False
+                ).create(
+                    {
+                        "product_tmpl_id": template.id,
+                        "attribute_id": attribute.id,
+                        "value_ids": [(6, False, [value.id])],
+                    }
+                )
+                # The create will add the value on all variant, clean it up
+                ptav_new = tpl_attr_line.product_template_value_ids.filtered(lambda ptav: ptav.product_attribute_value_id == value)
+                product_to_update = ptav2move.ptav_product_variant_ids
+                product_to_remove_value = ptav_new.ptav_product_variant_ids - product_to_update
+                product_to_remove_value.product_template_attribute_value_ids = [(3, ptav_new.id, 0)]
+            else:
+                # Add the new value to an existing line
+                product_to_update = ptav2move.ptav_product_variant_ids
+                tpl_attr_line.with_context(
+                    update_product_template_attribute_values=False
+                ).write({"value_ids": [(4, value.id)]})
+                ptav2move.write(
+                    {
+                        "attribute_line_id": tpl_attr_line.id
+                    }
+                )
+            # TODO cleanup ptal_to_move that are empty !
 
 
     @api.model
