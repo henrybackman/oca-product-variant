@@ -81,7 +81,13 @@ class WizardProductAttributeMerge(models.TransientModel):
         # ]
         # todo - modify product_template_attribute_value
 
-        value.attribute_id = attribute
+
+    @api.model
+    def _delete_attribute_value(self, value):
+        if not value.pav_attribute_line_ids:
+            value.unlink()
+        else:
+            raise UserError(_(f"Deleting the attribute value {value.name} is not possible, because it is being used."))
 
     @api.model
     def _get_actions_for_values(self, attribute_to_merge, attribute_merge_into):
@@ -97,7 +103,7 @@ class WizardProductAttributeMerge(models.TransientModel):
                     "merge_into_attribute_id": attribute_merge_into.id,
                     "merge_into_attribute_value_id": False,
                 }
-                for value in attribute_to_merge.value_ids
+                # for value in attribute_to_merge.value_ids
             )
         return actions
 
@@ -109,7 +115,6 @@ class WizardProductAttributeMerge(models.TransientModel):
             elif action.attribute_value_action == "move":
                 self._move_attribute_value(action.attribute_value_id, action.merge_into_attribute_id)
                 pass
-            else:
-                pass
-
+            elif action.attribute_value_action == "delete":
+                self._delete_attribute_value(action.attribute_value_id)
         return
