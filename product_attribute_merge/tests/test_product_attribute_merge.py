@@ -153,7 +153,6 @@ class TestProductAttributeMerge(SavepointCase):
         self.assertTrue(value_to_move in colour.value_ids)
         # TODO check same products have the attribute
         related_variant_after = self._get_value_related_variant(value_to_move)
-        wizard = self._get_wizard(colour)
         self.assertEqual(related_variant_before, related_variant_after)
 
     def test_move_value_attribute_used_on_product(self):
@@ -172,8 +171,6 @@ class TestProductAttributeMerge(SavepointCase):
 
             }
         )
-        # product_4
-
         # Move White to colour
         value_to_move = self.env.ref("product.product_attribute_value_3")
         related_variant_before = self._get_value_related_variant(value_to_move)
@@ -183,7 +180,26 @@ class TestProductAttributeMerge(SavepointCase):
         self.assertTrue(value_to_move in colour.value_ids)
         # TODO check same products have the attribute
         related_variant_after = self._get_value_related_variant(value_to_move)
+        self.assertEqual(related_variant_before, related_variant_after)
+
+    def test_move_value_attribute_only_one_value_on_ptal(self):
+        # Has White, Black
+        color= self.env.ref("product.product_attribute_2")
+        # Has Black, Pink, Orange
+        colour = self.env.ref("product_attribute_merge.attribute_colour")
+        # Remove the black from the ptal
+        __import__("pdb").set_trace()
+        black = self.env.ref("product.product_attribute_value_4")
+        color.attribute_line_ids.value_ids = [(2, black.id, 0)]
+        # Move White to colour
+        value_to_move = self.env.ref("product.product_attribute_value_3")
+        related_variant_before = self._get_value_related_variant(value_to_move)
         wizard = self._get_wizard(colour)
+        wizard._move_attribute_value(value_to_move, colour)
+        self.assertTrue(value_to_move not in color.value_ids)
+        self.assertTrue(value_to_move in colour.value_ids)
+        # TODO check same products have the attribute
+        related_variant_after = self._get_value_related_variant(value_to_move)
         self.assertEqual(related_variant_before, related_variant_after)
 
     def test_delete_value_unused(self):
@@ -194,118 +210,3 @@ class TestProductAttributeMerge(SavepointCase):
         wizard = self._get_wizard(colour)
         wizard._delete_attribute_value(value_to_delete)
         self.assertTrue(value_to_delete not in colour.value_ids)
-
-
-
-
-    # def test_value_unlink(self):
-    #     # No SO has been created, therefore we should be able to unlink values.
-    #     other_color_values = self.values - self.red
-    #     # Remove red from the attribute lines
-    #     self.attribute_lines.write({"value_ids": [(6, 0, other_color_values.ids)]})
-    #     # then unlink it
-    #     self.red.unlink()
-    #     updated_values = self.attribute.value_ids
-    #     self.assertEqual(len(updated_values), 3)
-    #     self.assertNotIn(self.red, updated_values)
-
-    # def test_value_archive(self):
-    #     self._create_sale_order_lines(self.red_products)
-    #     # Trying to unlink the value here should raise an exception
-    #     # since it's still referenced by the car and pen product templates
-    #     regex = f"You cannot delete the value color: {self.red.name}"
-    #     with self.assertRaisesRegex(UserError, regex):
-    #         self.red.unlink()
-    #     # Remove the value from the set
-    #     self.attribute_lines.write({"value_ids": [(3, self.red.id, 0)]})
-    #     # The variants should be archived instead of unlinked,
-    #     # since it's referenced by a sale.order.line (odoo standard)
-    #     self.assertNone(self.red_products.mapped("active"))
-    #     # now, since the the variant is archived, we shouldn't be able
-    #     self.red.unlink()
-    #     self.assertFalse(self.red.active)
-
-    # def test_value_non_archiveable(self):
-    #     self._create_sale_order_lines(self.red_pen)
-    #     # Remove the value from the set
-    #     self.pen_attribute_line.value_ids = [(3, self.red.id, 0)]
-    #     # The variant should be archived, since it's referenced
-    #     # by a sale.order.line -> odoo standard
-    #     self.assertFalse(self.red_pen.active)
-    #     # The red car variant is still active, so we shouldn't be able
-    #     # to archive or unlink the value, and odoo should raise
-    #     # an exception saying that red is still referenced by car
-    #     regex = (
-    #         f"You cannot delete the value color: {self.red.name} "
-    #         f"because it is used on the following products:\n{self.car.name}"
-    #     )
-    #     with self.assertRaisesRegex(UserError, regex):
-    #         self.red.unlink()
-
-    # def test_create_same_value_after_archive(self):
-    #     """If we try to create the same attribute value as an existing archived
-    #     one, then it should be unarchived instead.
-    #     """
-    #     self._create_sale_order_lines(self.red_products)
-    #     # Remove the red value from the set
-    #     self.attribute_lines.write({"value_ids": [(3, self.red.id, 0)]})
-    #     # now, since the the variant is archived, we shouldn't be able
-    #     self.red.unlink()
-    #     self.assertFalse(self.red.active)
-    #     new_red = self.value_model.create(
-    #         {"attribute_id": self.attribute.id, "name": "red"}
-    #     )
-    #     self.assertEqual(new_red, self.red)
-    #     self.assertTrue(new_red.active)
-
-    # def test_unarchive_variant_after_value_archive(self):
-    #     """An archived attribute value should be unarchived if a variant
-    #     that references it is unarchived.
-    #     """
-    #     self._create_sale_order_lines(self.red_products)
-    #     # Remove the red value from the set
-    #     self.attribute_lines.write({"value_ids": [(3, self.red.id, 0)]})
-    #     # now, since the the variant is archived, we shouldn't be able
-    #     self.red.unlink()
-    #     self.assertFalse(self.red.active)
-    #     # Ensure that odoo sets all ptav to active False when once unreferenced
-    #     product_tmpl_attribute_vals = (
-    #         self.red_products.product_template_attribute_value_ids
-    #     )
-    #     self.assertNone(product_tmpl_attribute_vals.mapped("ptav_active"))
-    #     # Unarchive products, and check that attribute value is unarchived as
-    #     # well
-    #     self.red_products.write({"active": True})
-    #     self.assertTrue(self.red.active)
-    #     self.assertAll(product_tmpl_attribute_vals.mapped("ptav_active"))
-
-    # def test_unarchive_product_archived_tmpl_attr_line(self):
-    #     """docstring here"""
-    #     self._create_sale_order_lines(self.red_products)
-    #     # Removing the tmpl_attr_line from the product templates
-    #     # should archive it, as well as the variant
-    #     self.red_templates.write({"attribute_line_ids": [(5, 0, 0)]})
-    #     template_lines = self._get_template_line_from_templates(self.red_templates)
-    #     self.assertEqual(len(template_lines), 2)
-    #     self.assertNone(template_lines.mapped("active"))
-    #     # Since the the related variants are archived, removing a value from
-    #     # an attribute should archive it instead or unlink
-    #     self.red.unlink()
-    #     self.assertNone(self.red_products.mapped("active"))
-    #     # Unarchive those variants should as well unarchive :
-    #     #   - the related product_template_attribute_value
-    #     #   - the related product_attribute_value
-    #     #   - the related product_template_attribute_line
-    #     self.red_products.write({"active": True})
-    #     # Check product_template_attribute_value
-    #     tmpl_attr_vals = self.red_products.mapped(
-    #         "product_template_attribute_value_ids"
-    #     )
-    #     self.assertAll(tmpl_attr_vals.mapped("ptav_active"))
-    #     # Check product_attribute_value
-    #     attr_vals = tmpl_attr_vals.mapped("product_attribute_value_id")
-    #     self.assertAll(attr_vals.mapped("active"))
-    #     # Check product_template_attribute_line
-    #     template_lines = self.red_templates.mapped("attribute_line_ids")
-    #     self.assertAll(template_lines.mapped("active"))
-    #     self.assertEqual(len(template_lines), 2)

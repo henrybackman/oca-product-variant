@@ -69,6 +69,12 @@ class WizardProductAttributeMerge(models.TransientModel):
         # Remove the value from existing ptal (need clean up after)
         for line in ptal_to_move:
             # TODO handle archived line as well !
+            # If there is no value on the line, safe and better to delete them
+            # if not line.value_ids:
+            #     line.unlink()
+            # FIXME it breaks when only one value on the line !
+            if len(line.value_ids) == 1:
+                __import__("pdb").set_trace()
             line.with_context(
                 update_product_template_attribute_values=False
             ).write({"value_ids": [(3, value.id)]})
