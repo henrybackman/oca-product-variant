@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_product_attribute_merge_value_action_employee,wizard.product.attribute.action employee,model_product_attribute_merge_value_action,base.group_user,1,0,0,0
+access_product_attribute_merge_value_action_manager,wizard.product.attribute.action manager,model_product_attribute_merge_value_action,base.group_system,1,1,1,1
+access_wizard_product_attribute_merge_employee,wizard.product.attribute.merge employee,model_wizard_product_attribute_merge,base.group_user,1,0,0,0
+access_wizard_product_attribute_merge_manager,wizard.product.attribute.merge manager,model_wizard_product_attribute_merge,base.group_system,1,1,1,1
